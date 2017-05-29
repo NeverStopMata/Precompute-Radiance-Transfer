@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{8e1abe94-5d90-436a-bc78-a3fe7886e9c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{47aed8d1-c4b0-4d83-9a80-77c2a7a0e5cb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="common\controls.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\objloader.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\quaternion_utils.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\shader.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\tangentspace.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\text2D.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\texture.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="common\vboindexer.hpp">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PRT_SH.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="common\controls.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\objloader.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\quaternion_utils.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\shader.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\tangentspace.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\text2D.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\texture.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="common\vboindexer.cpp">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="DepthRTT.fragmentshader">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="DepthRTT.vertexshader">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="Passthrough.vertexshader">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="ShadowMapping.fragmentshader">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="ShadowMapping.vertexshader">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="ShadowMapping_SimpleVersion.fragmentshader">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="ShadowMapping_SimpleVersion.vertexshader">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="SimpleTexture.fragmentshader">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
