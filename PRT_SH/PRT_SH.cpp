@@ -1,5 +1,6 @@
 ﻿// Include standard headers
 #include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <vector>
 
@@ -14,13 +15,14 @@ GLFWwindow* window;
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
+using namespace std;
 
 #include "common/shader.hpp"
 #include "common/texture.hpp"
 #include "common/controls.hpp"
 #include "common/objloader.hpp"
 #include "common/vboindexer.hpp"
-
+#include "Scene.h"
 int main(void)
 {
 	// Initialise GLFW
@@ -95,9 +97,10 @@ int main(void)
 
 	// Load the texture
 	GLuint Texture = loadDDS("uvmap.DDS");
-
+	Scene scene("room_thickwalls.obj");
+	cout <<"triangle num:"<< scene.indices.size()/3 << endl;
 	// Read our .obj file
-	std::vector<glm::vec3> vertices;
+	/*std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
 	bool res = loadOBJ("room_thickwalls.obj", vertices, uvs, normals);
@@ -106,30 +109,30 @@ int main(void)
 	std::vector<glm::vec3> indexed_vertices;
 	std::vector<glm::vec2> indexed_uvs;
 	std::vector<glm::vec3> indexed_normals;
-	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);*/
 
 	// Load it into a VBO
 
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, scene.indexed_vertices.size() * sizeof(glm::vec3), &scene.indexed_vertices[0], GL_STATIC_DRAW);
 
 	GLuint uvbuffer;
 	glGenBuffers(1, &uvbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, scene.indexed_uvs.size() * sizeof(glm::vec2), &scene.indexed_uvs[0], GL_STATIC_DRAW);
 
 	GLuint normalbuffer;
 	glGenBuffers(1, &normalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(glm::vec3), &scene.indexed_normals[0], GL_STATIC_DRAW);
 
 	// Generate a buffer for the indices as well
 	GLuint elementbuffer;
 	glGenBuffers(1, &elementbuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, scene.indices.size() * sizeof(unsigned short), &scene.indices[0], GL_STATIC_DRAW);
 
 
 	// ---------------------------------------------
@@ -254,7 +257,7 @@ int main(void)
 		// Draw the triangles !
 		glDrawElements(
 			GL_TRIANGLES,      // mode
-			indices.size(),    // count
+			scene.indices.size(),    // count
 			GL_UNSIGNED_SHORT, // type
 			(void*)0           // element array buffer offset
 			);
@@ -354,7 +357,7 @@ int main(void)
 		// Draw the triangles !
 		glDrawElements(
 			GL_TRIANGLES,      // mode
-			indices.size(),    // count
+			scene.indices.size(),    // count
 			GL_UNSIGNED_SHORT, // type
 			(void*)0           // element array buffer offset
 			);
