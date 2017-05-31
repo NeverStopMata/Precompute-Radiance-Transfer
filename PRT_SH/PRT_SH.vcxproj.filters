@@ -60,6 +60,21 @@
     <ClInclude Include="Triangle.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Sample.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SH_Calculator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SampleSet.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SH_RotationManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -96,6 +111,21 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Triangle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Sample.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SH_Calculator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SampleSet.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SH_RotationManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

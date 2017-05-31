@@ -4,7 +4,8 @@
 #include "common/vboindexer.hpp"
 #include <iostream>
 using namespace std;
-Scene::Scene(const char * filePath)
+using namespace glm;
+Scene::Scene(const char * filePath,SampleSet Ss)
 {
 	vector<vec3> temp_vertices;
 	vector<vec2> temp_uvs;
@@ -25,8 +26,10 @@ Scene::Scene(const char * filePath)
 	cout << "一开始的三角形个数：" << stack_triangles.size() << endl;
 	SubFacesGenerate(stack_triangles);
 	volume_vertices = temp_vertices;
+
+	GenerateDirectCoeffs(Ss);
 	//indexVBO(temp_vertices, temp_uvs, temp_normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
-	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+	indexVBO(vertices, uvs, normals, coeffsList, indices, indexed_vertices, indexed_uvs, indexed_normals, indexed_coeffsList);
 }
 
 void Scene::SubFacesGenerate(stack<Triangle> stack_triangles)
@@ -82,5 +85,42 @@ void Scene::AddTiangle(Triangle newTriangle)
 }
 Scene::~Scene()
 {
+}
+
+
+void Scene::GenerateDirectCoeffs(SampleSet sampleset)
+{
+	const int numFunctions = sampleset.numBands * sampleset.numBands;
+
+	//Create space for the SH coefficients in each vertex
+	const int numVertices = vertices.size();
+
+	for (int i = 0; i < numVertices; ++i)
+	{
+		float * Coeffs = new float[numFunctions];
+		for (int j = 0; j < numFunctions; j++)
+		{
+			Coeffs[j] = 0.0f;
+		}
+		
+		for (int j = 0; j < sampleset.numSamples; j++)
+		{
+			float dotResult = dot(sampleset.all[j].direction, normals[i]);
+			if (dotResult > 0.0f)
+			{
+				//Add the contribution of this sample to the coefficients
+				for (int k = 0; k < numFunctions; ++k)
+				{
+					float contribution = dotResult * sampleset.all[j].shValues[k];
+					Coeffs[k] += contribution;
+				}
+			}
+		}
+		for (int j = 0; j < numFunctions; ++j)
+		{
+			Coeffs[j] *= 4 * 3.1415926 / sampleset.numSamples;
+		}
+		this->coeffsList.push_back(Coeffs);
+	}
 }
 

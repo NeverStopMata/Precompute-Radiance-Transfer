@@ -158,7 +158,12 @@
     <ClInclude Include="common\text2D.hpp" />
     <ClInclude Include="common\texture.hpp" />
     <ClInclude Include="common\vboindexer.hpp" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Sample.h" />
+    <ClInclude Include="SampleSet.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SH_Calculator.h" />
+    <ClInclude Include="SH_RotationManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Triangle.h" />
@@ -172,8 +177,13 @@
     <ClCompile Include="common\text2D.cpp" />
     <ClCompile Include="common\texture.cpp" />
     <ClCompile Include="common\vboindexer.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="PRT_SH.cpp" />
+    <ClCompile Include="Sample.cpp" />
+    <ClCompile Include="SampleSet.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SH_Calculator.cpp" />
+    <ClCompile Include="SH_RotationManager.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Triangle.cpp" />
   </ItemGroup>

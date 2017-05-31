@@ -23,6 +23,7 @@ using namespace std;
 #include "common/objloader.hpp"
 #include "common/vboindexer.hpp"
 #include "Scene.h"
+#include "Light.h"
 int main(void)
 {
 	// Initialise GLFW
@@ -97,21 +98,12 @@ int main(void)
 
 	// Load the texture
 	GLuint Texture = loadDDS("uvmap.DDS");
-	Scene scene("room_thickwalls.obj");
-	cout <<"triangle num:"<< scene.indices.size()/3 << endl;
-	// Read our .obj file
-	/*std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals;
-	bool res = loadOBJ("room_thickwalls.obj", vertices, uvs, normals);
+	SampleSet Ss(50, 4);
+	Scene scene("room_thickwalls.obj", Ss);
+	
+	Light simpleLight(1.0f, Ss);
+	
 
-	std::vector<unsigned short> indices;
-	std::vector<glm::vec3> indexed_vertices;
-	std::vector<glm::vec2> indexed_uvs;
-	std::vector<glm::vec3> indexed_normals;
-	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);*/
-
-	// Load it into a VBO
 
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
