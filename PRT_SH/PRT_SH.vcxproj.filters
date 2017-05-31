@@ -131,28 +131,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="DepthRTT.fragmentshader">
+    <None Include="fragment.glsl">
       <Filter>shaders</Filter>
     </None>
-    <None Include="DepthRTT.vertexshader">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="Passthrough.vertexshader">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="ShadowMapping.fragmentshader">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="ShadowMapping.vertexshader">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="ShadowMapping_SimpleVersion.fragmentshader">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="ShadowMapping_SimpleVersion.vertexshader">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="SimpleTexture.fragmentshader">
+    <None Include="vertex.glsl">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

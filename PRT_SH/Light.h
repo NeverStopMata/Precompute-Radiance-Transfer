@@ -18,5 +18,6 @@ public:
 	~Light();
 	float IsInLightArea(float theta);
 	void  RotateLight(float theta, float phi);
+	mat4 getRotatedCoeffsMatrix();
 };
 

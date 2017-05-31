@@ -188,15 +188,9 @@
     <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="DepthRTT.fragmentshader" />
-    <None Include="DepthRTT.vertexshader" />
     <None Include="packages.config" />
-    <None Include="Passthrough.vertexshader" />
-    <None Include="ShadowMapping.fragmentshader" />
-    <None Include="ShadowMapping.vertexshader" />
-    <None Include="ShadowMapping_SimpleVersion.fragmentshader" />
-    <None Include="ShadowMapping_SimpleVersion.vertexshader" />
-    <None Include="SimpleTexture.fragmentshader" />
+    <None Include="fragment.glsl" />
+    <None Include="vertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
