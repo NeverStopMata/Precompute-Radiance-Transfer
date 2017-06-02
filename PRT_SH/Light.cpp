@@ -19,7 +19,7 @@ Light::Light(float size, SampleSet Ss)
 			coeffs[i] += IsInLightArea(Ss.all[j].theta) * Ss.all[j].shValues[i];
 			
 		}
-		coeffs[i] *= 4.0f * 3.1415926f / Ss.numSamples;
+		coeffs[i] *= 4.0f * M_PI / Ss.numSamples;
 	}
 	rotatedCoeffs = coeffs;
 }

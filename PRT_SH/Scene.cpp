@@ -1,5 +1,5 @@
 #include "Scene.h"
-#include "Triangle.h"
+
 #include "common/objloader.hpp"
 #include "common/vboindexer.hpp"
 #include <iostream>
@@ -63,9 +63,6 @@ void Scene::SubFacesGenerate(stack<Triangle> stack_triangles)
 			ab2 = subTriangle2.GetSideLength(0);
 			bc2 = subTriangle2.GetSideLength(1);
 			ca2 = subTriangle2.GetSideLength(2);
-			cout << "待分割的三角边长：" << ab << " " << bc << " " << ca << endl;
-			cout << "子三角边长：" << ab1 << " " << bc1 << " " << ca1 << endl;
-			cout << "子三角边长：" << ab2 << " " << bc2 << " " << ca2 << endl;
 
 
 		}
@@ -95,6 +92,8 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 	//Create space for the SH coefficients in each vertex
 	const int numVertices = vertices.size();
 
+
+	vector<Triangle> triangleList4BlockDetect = this->GetVolumeTriangleList();
 	for (int i = 0; i < numVertices; ++i)
 	{
 		float * Coeffs = new float[numFunctions];
@@ -102,25 +101,42 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 		{
 			Coeffs[j] = 0.0f;
 		}
-		
+		int lastBlockFaceNum = 0;
+		int blockNum = 0;
 		for (int j = 0; j < sampleset.numSamples; j++)
 		{
 			float dotResult = dot(sampleset.all[j].direction, normals[i]);
+			
 			if (dotResult > 0.0f)
 			{
-				//Add the contribution of this sample to the coefficients
-				for (int k = 0; k < numFunctions; ++k)
+				Ray currentRay(this->vertices[i], sampleset.all[j].direction, normals[i]);
+				if ((lastBlockFaceNum = currentRay.IsBlocked(triangleList4BlockDetect, lastBlockFaceNum)) < 0)
 				{
-					float contribution = dotResult * sampleset.all[j].shValues[k];
-					Coeffs[k] += contribution;
-				}
-			}
+					for (int k = 0; k < numFunctions; ++k)
+					{
+						float contribution = dotResult * sampleset.all[j].shValues[k];
+						Coeffs[k] += contribution;
+					}
+					lastBlockFaceNum = 0;
+				}	
+			}	
 		}
 		for (int j = 0; j < numFunctions; ++j)
 		{
-			Coeffs[j] *= 4 * 3.1415926 / sampleset.numSamples;
+			Coeffs[j] *= 4 * M_PI / sampleset.numSamples;
 		}
 		this->coeffsList.push_back(Coeffs);
+		cout <<"current vertex: NO. "<< i <<"  "<<"blocked rays number:"<<blockNum<< endl;
 	}
 }
 
+vector<Triangle> Scene::GetVolumeTriangleList()
+{
+	vector<Triangle> resTrgleList;
+	for (int i = 0; i < this->volume_vertices.size() / 3; i++)
+	{
+		Triangle newOne(volume_vertices[i * 3], volume_vertices[i * 3 + 1], volume_vertices[i * 3 + 2]);
+		resTrgleList.push_back(newOne);
+	}
+	return resTrgleList;
+}

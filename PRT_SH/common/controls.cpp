@@ -23,7 +23,7 @@ glm::mat4 getProjectionMatrix(){
 // Initial position : on +Z
 glm::vec3 position = glm::vec3( 0, 0, 5 ); 
 // Initial horizontal angle : toward -Z
-float horizontalAngle = 3.14f;
+float horizontalAngle = M_PI;
 // Initial vertical angle : none
 float verticalAngle = 0.0f;
 // Initial Field of View
@@ -63,9 +63,9 @@ void computeMatricesFromInputs(){
 	
 	// Right vector
 	glm::vec3 right = glm::vec3(
-		sin(horizontalAngle - 3.14f/2.0f), 
+		sin(horizontalAngle - M_PI /2.0f),
 		0,
-		cos(horizontalAngle - 3.14f/2.0f)
+		cos(horizontalAngle - M_PI /2.0f)
 	);
 	
 	// Up vector

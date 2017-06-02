@@ -159,6 +159,7 @@
     <ClInclude Include="common\texture.hpp" />
     <ClInclude Include="common\vboindexer.hpp" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Ray.h" />
     <ClInclude Include="Sample.h" />
     <ClInclude Include="SampleSet.h" />
     <ClInclude Include="Scene.h" />
@@ -179,6 +180,7 @@
     <ClCompile Include="common\vboindexer.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="PRT_SH.cpp" />
+    <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Sample.cpp" />
     <ClCompile Include="SampleSet.cpp" />
     <ClCompile Include="Scene.cpp" />

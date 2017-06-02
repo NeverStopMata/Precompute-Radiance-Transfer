@@ -41,7 +41,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 768, "Tutorial 16 - Shadows", NULL, NULL);
+	window = glfwCreateWindow(1024, 768, "PRT_SH", NULL, NULL);
 	if (window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
@@ -91,12 +91,11 @@ int main(void)
 	glBindVertexArray(VertexArrayID);
 
 	
-	GLuint Texture = loadDDS("uvmap.DDS");
+	GLuint Texture = loadBMP_custom("blue.bmp");
 	SampleSet Ss(50, 4);
-	Scene scene("room_thickwalls.obj", Ss);
+	Scene scene("test.obj", Ss);
 	
-	Light simpleLight(1.0f, Ss);
-	
+	Light simpleLight(0.8f, Ss);
 
 	
 	GLuint vertexbuffer;
@@ -158,8 +157,12 @@ int main(void)
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 
 	GLuint lightCoeffsID = glGetUniformLocation(programID, "lightCoeffs");
+	simpleLight.RotateLight(120.0f, 0.0f);
 	
 
+	float lastTime = glfwGetTime();
+	float currentTime = 0.0, fps = 100.0;
+	int nbFrames = 0;
 	do {
 		glViewport(0, 0, 1024, 1024); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 
@@ -194,6 +197,7 @@ int main(void)
 		//ViewMatrix = glm::lookAt(glm::vec3(14,6,4), glm::vec3(0,1,0), glm::vec3(0,1,0));
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+		simpleLight.RotateLight(0.0f, 0.1f);
 		glm::mat4 lightCoeffs = simpleLight.getRotatedCoeffsMatrix();
 
 		// Send our transformation to the currently bound shader, 
@@ -312,6 +316,15 @@ int main(void)
 		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		nbFrames++;
+		currentTime = glfwGetTime();
+		if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1sec ago
+											 // printf and reset
+			fps = (nbFrames);
+			nbFrames = 0;
+			lastTime += 1.0;
+			cout << "fps:" << fps << endl;
+		}
 
 	} // Check if the ESC key was pressed or the window was closed
 	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&

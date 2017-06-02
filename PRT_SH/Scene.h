@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Triangle.h"
 #include "SampleSet.h"
+#include "Ray.h"
 using namespace glm;
 using namespace std;
 class Scene
@@ -28,5 +29,6 @@ public:
 	void Scene::SubFacesGenerate(stack<Triangle> stack_triangles);
 	void Scene::AddTiangle(Triangle newTriangle);
 	void Scene::GenerateDirectCoeffs(SampleSet sampleset);
+	vector<Triangle> Scene::GetVolumeTriangleList();
 };
 
