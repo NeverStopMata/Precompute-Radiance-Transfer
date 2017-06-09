@@ -27,7 +27,8 @@ Scene::Scene(const char * filePath,SampleSet Ss)
 	SubFacesGenerate(stack_triangles);
 	volume_vertices = temp_vertices;
 
-	GenerateDirectCoeffs(Ss);
+	//GenerateDirectCoeffs(Ss);
+	GenerateDirectCoeffs_CL(Ss);
 	//indexVBO(temp_vertices, temp_uvs, temp_normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 	indexVBO(vertices, uvs, normals, coeffsList, indices, indexed_vertices, indexed_uvs, indexed_normals, indexed_coeffsList);
 }
@@ -82,6 +83,31 @@ void Scene::AddTiangle(Triangle newTriangle)
 }
 Scene::~Scene()
 {
+	vector<float *> coeffsList;
+	vector<float *> transferMatrix;
+	vector<unsigned short> indices;
+	vector<vec3> indexed_vertices;
+	vector<vec2> indexed_uvs;
+	vector<vec3> indexed_normals;
+	vector<float *> indexed_coeffsList;
+	for each (float * var in coeffsList)
+	{
+		if (var)
+			delete[] var;
+		var = NULL;
+	}
+	for each (float * var in transferMatrix)
+	{
+		if (var)
+			delete[] var;
+		var = NULL;
+	}
+	for each (float * var in indexed_coeffsList)
+	{
+		if (var)
+			delete[] var;
+		var = NULL;
+	}
 }
 
 
@@ -109,6 +135,11 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 			
 			if (dotResult > 0.0f)
 			{
+				/*for (int k = 0; k < numFunctions; ++k)
+				{
+					float contribution = dotResult * sampleset.all[j].shValues[k];
+					Coeffs[k] += contribution;
+				}*/
 				Ray currentRay(this->vertices[i], sampleset.all[j].direction, normals[i]);
 				if ((lastBlockFaceNum = currentRay.IsBlocked(triangleList4BlockDetect, lastBlockFaceNum)) < 0)
 				{
@@ -118,7 +149,7 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 						Coeffs[k] += contribution;
 					}
 					lastBlockFaceNum = 0;
-				}	
+				}	                                                                                                                                                                
 			}	
 		}
 		for (int j = 0; j < numFunctions; ++j)
@@ -130,6 +161,64 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 	}
 }
 
+void Scene::GenerateDirectCoeffs_CL(SampleSet sampleset)
+{
+	OpenCL_Math CLtool;
+	const int numDots = vertices.size();
+	const int numVertices = volume_vertices.size();
+	float* sampleDircts = new float[sampleset.numSamples * 3];
+	for (int i = 0; i < sampleset.numSamples *3; i++)
+	{
+		sampleDircts[i] = sampleset.all[i / 3].direction[i % 3];
+	}
+	float* dotNormals = new float[numDots * 3];
+	for (int i = 0; i < numDots * 3; i++)
+	{
+		dotNormals[i] = normals[i / 3][i % 3];
+	}
+	float* dotPos = new float[numDots * 3];
+	for (int i = 0; i < numDots * 3; i++)
+	{
+		dotPos[i] = vertices[i / 3][i % 3];
+	}
+	float* vertexPos = new float[numVertices * 3];
+	for (int i = 0; i < numVertices * 3; i++)
+	{
+		vertexPos[i] = volume_vertices[i / 3][i % 3];
+	}
+	float* faceNromals = new float[numVertices];
+	vector<Triangle> triangleList4BlockDetect = this->GetVolumeTriangleList();
+	for (int i = 0; i < numVertices; i++)
+	{
+		faceNromals[i] = triangleList4BlockDetect[i / 3].faceNormal[i % 3];
+	}
+	int numDots_round;
+	numDots_round = (numDots / 16 + 1)*16;
+	float* sceneMatrix = new float[sampleset.numSamples * numDots_round];
+	for (int i = sampleset.numSamples * numDots; i < sampleset.numSamples * numDots_round; i++)
+		sceneMatrix[i] = 0.0f;
+	CLtool.GetSceneMatrix(sampleset.numSamples, numDots, numVertices, sampleDircts, dotNormals, dotPos, vertexPos, faceNromals, sceneMatrix);
+	int numSH_Mat = sampleset.numSamples * sampleset.numBands * sampleset.numBands;
+	float * SH_BasicMat = new float[numSH_Mat];
+	for (int i = 0; i < numSH_Mat; i++)
+	{
+		SH_BasicMat[i] = sampleset.all[i/16].shValues[i%16];
+	}
+	float * coeffMat = new float[sampleset.numBands * sampleset.numBands * numDots_round];
+	CLtool.MatMultip(16, numDots_round, sampleset.numSamples, SH_BasicMat, sceneMatrix, coeffMat);
+	for (int i = 0; i < numDots; i++)
+	{
+		coeffsList.push_back(&coeffMat[i * sampleset.numBands * sampleset.numBands]);
+	}
+	delete[] sampleDircts;
+	delete[] dotNormals;
+	delete[] dotPos;
+	delete[] vertexPos;
+	delete[] faceNromals;
+	delete[] sceneMatrix;
+	delete[] SH_BasicMat;
+}
+
 vector<Triangle> Scene::GetVolumeTriangleList()
 {
 	vector<Triangle> resTrgleList;
@@ -139,4 +228,25 @@ vector<Triangle> Scene::GetVolumeTriangleList()
 		resTrgleList.push_back(newOne);
 	}
 	return resTrgleList;
+}
+void Scene::GenerateTransferMatrix(SampleSet sampleset)
+{
+	const int numFunctions = sampleset.numBands * sampleset.numBands;
+	const int numEntries = numFunctions * numFunctions;
+	//Create space for the SH coefficients in each vertex
+	const int numVertices = vertices.size();
+	for (int i = 0; i < numVertices; ++i)
+	{
+		float * transferMatrix = new float[numEntries];
+		for (int j = 0; j < numEntries; j++)
+		{
+			transferMatrix[j] = 0.0f;
+		}
+		for (int k = 0; k < numFunctions; k++)
+			for (int l = 0; l < numFunctions; l++)
+			{
+
+			}
+		transferMatrixs.push_back(transferMatrix);
+	}
 }

@@ -11,6 +11,7 @@ Light::Light(float size, SampleSet Ss)
 	numBands = Ss.numBands;
 	this->size = size;
 	coeffs = new float[numFunctions];
+	rotatedCoeffs = new float[numFunctions];
 	for (int i = 0; i < numFunctions; i++)
 	{
 		coeffs[i] = 0.0f;
@@ -21,7 +22,6 @@ Light::Light(float size, SampleSet Ss)
 		}
 		coeffs[i] *= 4.0f * M_PI / Ss.numSamples;
 	}
-	rotatedCoeffs = coeffs;
 }
 
 

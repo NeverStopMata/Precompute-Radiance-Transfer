@@ -11,41 +11,403 @@ layout(location = 6) in vec4 coeffs4;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
-out vec3 Position_worldspace;
-out vec3 Normal_cameraspace;
-out vec3 EyeDirection_cameraspace;
 out float brightness;
 // Values that stay constant for the whole mesh.
 uniform mat4 MVP;
 uniform mat4 V;
 uniform mat4 M;
 uniform mat4 lightCoeffs;
+uniform mat4 specularCoeffs;
+uniform vec3 EyePos_worldspace;
 
 
 
+float[3] matrixMulptiVec3(bool transpose, float[9] matrix,float[3] orig_vec)
+{
+	float res[3];
+	int i,j;
+	for (i = 0; i<3; i++)
+	{
+		//Clear this entry of outVector
+		res[i] = 0.0;
+
+		//Loop through matrix row/column
+		for (j = 0; j<3; j++)
+		{
+			if (transpose)
+				res[i] += matrix[j*3 + i] * orig_vec[j];
+			else
+				res[i] += matrix[i*3 + j] * orig_vec[j];
+		}
+	}
+	return res;
+}
+float[5] matrixMulptiVec5(bool transpose,float[25] matrix,float[5] orig_vec)
+{
+	float res[5];
+	int i,j;
+	for (i = 0; i<5; i++)
+	{
+		//Clear this entry of outVector
+		res[i] = 0.0;
+
+		//Loop through matrix row/column
+		for (j = 0; j<5; j++)
+		{
+			if (transpose)
+				res[i] += matrix[j*5 + i] * orig_vec[j];
+			else
+				res[i] += matrix[i*5 + j] * orig_vec[j];
+		}
+	}
+	return res;
+}
+
+float[7] matrixMulptiVec7(bool transpose,float[49] matrix,float[7] orig_vec)
+{
+	float res[7];
+	int i,j;
+	for (i = 0; i<7; i++)
+	{
+		//Clear this entry of outVector
+		res[i] = 0.0;
+
+		//Loop through matrix row/column
+		for (j = 0; j<7; j++)
+		{
+			if (transpose)
+				res[i] += matrix[j*7 + i] * orig_vec[j];
+			else
+				res[i] += matrix[i*7 + j] * orig_vec[j];
+		}
+	}
+	return res;
+}
+
+
+float[9] GetX90DegreeRotationMatrix3()
+{
+	float entries[9];
+	entries[0] = 0.0;
+	entries[1] = 1.0;
+	entries[2] = 0.0;
+	entries[3] = -1.0;
+	entries[4] = 0.0;
+	entries[5] = 0.0;
+	entries[6] = 0.0;
+	entries[7] = 0.0;
+	entries[8] = 1.0;
+	return entries;
+}
+
+float[25] GetX90DegreeRotationMatrix5()
+{
+	float entries[25];
+	entries[0] = 0.0;
+	entries[1] = 0.0;
+	entries[2] = 0.0;
+	entries[3] = 1.0;
+	entries[4] = 0.0;
+	entries[5] = 0.0;
+	entries[6] = -1.0;
+	entries[7] = 0.0;
+	entries[8] = 0.0;
+	entries[9] = 0.0;
+	entries[10] = 0.0;
+	entries[11] = 0.0;
+	entries[12] = -0.5;
+	entries[13] = 0.0;
+	entries[14] = -sqrt(3.0) / 2;
+	entries[15] = -1.0;
+	entries[16] = 0.0;
+	entries[17] = 0.0;
+	entries[18] = 0.0;
+	entries[19] = 0.0;
+	entries[20] = 0.0;
+	entries[21] = 0.0;
+	entries[22] = -sqrt(3.0) / 2;
+	entries[23] = 0.0;
+	entries[24] = 0.5;
+	return entries;
+}
+
+float[49] GetX90DegreeRotationMatrix7()
+{
+	float entries[49];
+	for (int i = 0; i<49; ++i)
+		entries[i] = 0.0;
+
+	entries[3] = -sqrt(0.625);
+	entries[5] = sqrt(0.375);
+	entries[8] = -1.0;
+	entries[17] = -sqrt(0.375);
+	entries[19] = -sqrt(0.625);
+	entries[21] = sqrt(0.625);
+	entries[23] = sqrt(0.375);
+	entries[32] = -0.25;
+	entries[34] = -sqrt(15.0) / 4;
+	entries[35] = -sqrt(0.375);
+	entries[37] = sqrt(0.625);
+	entries[46] = -sqrt(15.0) / 4;
+	entries[48] = 0.25;
+	return entries;
+}
+
+float[9] GetZRotationMatrix3(float angle)
+{
+	float entries[9];
+	int currentEntry = 0;
+	int i,j;
+	//Loop through the rows and columns of the matrix
+	for (i = 0; i<3; ++i)
+	{
+		for (j = 0; j<3; ++j, ++currentEntry)
+		{
+			//Initialise this entry to zero
+			entries[currentEntry] = 0.0;
+
+			if (i == 1)
+			{
+				if (j == 1)
+					entries[currentEntry] = 1.0;
+				continue;
+			}
+
+
+			//The angle used is k*angle where k=(size-1)/2-i
+			if (i<1)
+			{
+				if (j == 0)
+					entries[currentEntry] = cos(angle);
+
+				if (j == 2)
+					entries[currentEntry] = sin(angle);
+
+				continue;
+			}
+
+			if (i>1)
+			{
+				if (j == 2)
+					entries[currentEntry] = cos(angle);
+
+				if (j == 0)
+					entries[currentEntry] = -sin(angle);
+
+				continue;
+			}
+		}
+	}
+	return entries;
+}
+
+float[25] GetZRotationMatrix5(float angle)
+{
+	int size = 5;
+	float entries[25]; 
+	//Convert angle to radians
+
+	//Entry index
+	int currentEntry = 0;
+	int i,j;
+	//Loop through the rows and columns of the matrix
+	for (i = 0; i<size; ++i)
+	{
+		for (j = 0; j<size; ++j, ++currentEntry)
+		{
+			//Initialise this entry to zero
+			entries[currentEntry] = 0.0;
+
+			//For the central row (i=(size-1)/2), entry is 1 if j==i, else zero
+			if (i == (size - 1) / 2)
+			{
+				if (j == i)
+					entries[currentEntry] = 1.0;
+
+				continue;
+			}
+
+			//For i<(size-1)/2, entry is cos if j==i or sin if j==size-i-1
+			//The angle used is k*angle where k=(size-1)/2-i
+			if (i<(size - 1) / 2)
+			{
+				int k = (size - 1) / 2 - i;
+
+				if (j == i)
+					entries[currentEntry] = cos(k*angle);
+
+				if (j == size - i - 1)
+					entries[currentEntry] = sin(k*angle);
+
+				continue;
+			}
+
+			//For i>(size-1)/2, entry is cos if j==i or -sin if j==size-i-1
+			//The angle used is k*angle where k=i-(size-1)/2
+			if (i>(size - 1) / 2)
+			{
+				int k = i - (size - 1) / 2;
+
+				if (j == i)
+					entries[currentEntry] = cos(k*angle);
+
+				if (j == size - i - 1)
+					entries[currentEntry] = -sin(k*angle);
+
+				continue;
+			}
+		}
+	}
+
+	return entries;
+}
+
+float[49] GetZRotationMatrix7(float angle)
+{
+	int size = 7;
+	float entries[49]; 
+	//Convert angle to radians
+
+	//Entry index
+	int currentEntry = 0;
+	int i,j;
+	//Loop through the rows and columns of the matrix
+	for (i = 0; i<size; ++i)
+	{
+		for (j = 0; j<size; ++j, ++currentEntry)
+		{
+			//Initialise this entry to zero
+			entries[currentEntry] = 0.0;
+
+			//For the central row (i=(size-1)/2), entry is 1 if j==i, else zero
+			if (i == (size - 1) / 2)
+			{
+				if (j == i)
+					entries[currentEntry] = 1.0;
+
+				continue;
+			}
+
+			//For i<(size-1)/2, entry is cos if j==i or sin if j==size-i-1
+			//The angle used is k*angle where k=(size-1)/2-i
+			if (i<(size - 1) / 2)
+			{
+				int k = (size - 1) / 2 - i;
+
+				if (j == i)
+					entries[currentEntry] = cos(k*angle);
+
+				if (j == size - i - 1)
+					entries[currentEntry] = sin(k*angle);
+				continue;
+			}
+
+			//For i>(size-1)/2, entry is cos if j==i or -sin if j==size-i-1
+			//The angle used is k*angle where k=i-(size-1)/2
+			if (i>(size - 1) / 2)
+			{
+				int k = i - (size - 1) / 2;
+
+				if (j == i)
+					entries[currentEntry] = cos(k*angle);
+
+				if (j == size - i - 1)
+					entries[currentEntry] = -sin(k*angle);
+				continue;
+			}
+		}
+	}
+	return entries;
+}
+
+
+float[16] getRotSpecCoeffs(vec4 component1,vec4 component2,vec4 component3,vec4 component4, float theta, float phi)
+{
+	float res[16];
+	res[0] = component1[0];
+	float order1[3];
+	order1[0] = component1[1];
+	order1[1] = component1[2];
+	order1[2] = component1[3];
+	float order2[5];
+	order2[0] = component2[0];
+	order2[1] = component2[1];
+	order2[2] = component2[2];
+	order2[3] = component2[3];
+	order2[4] = component3[0];
+	float order3[7];
+	order3[0] = component3[1];
+	order3[1] = component3[2];
+	order3[2] = component3[3];
+	order3[3] = component4[0];
+	order3[4] = component4[1];
+	order3[5] = component4[2];
+	order3[6] = component4[3];
+	float temp_result3[3];
+	temp_result3 = matrixMulptiVec3(false,GetZRotationMatrix3(phi),matrixMulptiVec3(true,GetX90DegreeRotationMatrix3(),matrixMulptiVec3(false,GetZRotationMatrix3(theta),matrixMulptiVec3(false,GetX90DegreeRotationMatrix3(),order1))));
+	res[1] = temp_result3[0];
+	res[2] = temp_result3[1];
+	res[3] = temp_result3[2];
+	float temp_result5[5];
+	temp_result5 = matrixMulptiVec5(false,GetZRotationMatrix5(phi),matrixMulptiVec5(true,GetX90DegreeRotationMatrix5(),matrixMulptiVec5(false,GetZRotationMatrix5(theta),matrixMulptiVec5(false,GetX90DegreeRotationMatrix5(),order2))));
+	res[4] = temp_result5[0];
+	res[5] = temp_result5[1];
+	res[6] = temp_result5[2];
+	res[7] = temp_result5[3];
+	res[8] = temp_result5[4];
+	float temp_result7[7];
+	temp_result7 = matrixMulptiVec7(false,GetZRotationMatrix7(phi),matrixMulptiVec7(true,GetX90DegreeRotationMatrix7(),matrixMulptiVec7(false,GetZRotationMatrix7(theta),matrixMulptiVec7(false,GetX90DegreeRotationMatrix7(),order3))));
+	res[9] = temp_result7[0];
+	res[10] = temp_result7[1];
+	res[11] = temp_result7[2];
+	res[12] = temp_result7[3];
+	res[13] = temp_result7[4];
+	res[14] = temp_result7[5];
+	res[15] = temp_result7[6];
+	return res;
+}
 void main(){
-	brightness = 0.0f;
-	brightness += dot(lightCoeffs[0], coeffs1);
-	brightness += dot(lightCoeffs[1], coeffs2);
-	brightness += dot(lightCoeffs[2], coeffs3);
-	brightness += dot(lightCoeffs[3], coeffs4);
 
-	vec3 test1 = {0,0,0};
+	
+	bool hasSpecular = false;
 	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
-	// Position of the vertex, in worldspace : M * position
-	Position_worldspace = (M * vec4(vertexPosition_modelspace,1)).xyz;
-	
-	// Vector that goes from the vertex to the camera, in camera space.
-	// In camera space, the camera is at the origin (0,0,0).
-	EyeDirection_cameraspace = vec3(0,0,0) - ( V * M * vec4(vertexPosition_modelspace,1)).xyz;
 
-	// Vector that goes from the vertex to the light, in camera space
+	gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
 	
-	// Normal of the the vertex, in camera space
-	Normal_cameraspace = ( V * M * vec4(vertexNormal_modelspace,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
+	mat4 rotSpecCffsMat;
+	if(hasSpecular)
+	{
+		vec3 Position_worldspace = (M * vec4(vertexPosition_modelspace,1)).xyz;
+		vec3 L_worldspace = normalize(reflect(normalize(Position_worldspace - EyePos_worldspace),normalize((M * vec4(vertexNormal_modelspace,0)).xyz)));
+		float theta,phi;
+		theta = acos(L_worldspace.z);
+		phi = atan(L_worldspace.y/L_worldspace.x);
+		float rotatedSpecCoeffs[16];
+		rotatedSpecCoeffs = getRotSpecCoeffs(specularCoeffs[0],specularCoeffs[1],specularCoeffs[2],specularCoeffs[3],theta,phi);		
+		int i,j;
+		for(i = 0;i<4;i++)
+			for(j = 0;j<4;j++)
+				rotSpecCffsMat[i][j] = rotatedSpecCoeffs[i*4+j];
+	}
 	
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
+
+	brightness = 0.0f;
+	if(hasSpecular)
+	{
+		brightness += dot(lightCoeffs[0], coeffs1 * rotSpecCffsMat[0]);
+		brightness += dot(lightCoeffs[1], coeffs2 * rotSpecCffsMat[1]);
+		brightness += dot(lightCoeffs[2], coeffs3 * rotSpecCffsMat[2]);
+		brightness += dot(lightCoeffs[3], coeffs4 * rotSpecCffsMat[3]);	
+	}
+	else{
+		brightness += dot(lightCoeffs[0], coeffs1);
+		brightness += dot(lightCoeffs[1], coeffs2);
+		brightness += dot(lightCoeffs[2], coeffs3);
+		brightness += dot(lightCoeffs[3], coeffs4);
+	}
+
+
 }
 

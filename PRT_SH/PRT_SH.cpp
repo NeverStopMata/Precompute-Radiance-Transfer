@@ -24,6 +24,9 @@ using namespace std;
 #include "common/vboindexer.hpp"
 #include "Scene.h"
 #include "Light.h"
+#include "SpecularBRDF.h"
+#include "Controller.h"
+#include "OpenCL_Math.h"
 int main(void)
 {
 	// Initialise GLFW
@@ -92,11 +95,11 @@ int main(void)
 
 	
 	GLuint Texture = loadBMP_custom("blue.bmp");
-	SampleSet Ss(50, 4);
+	SampleSet Ss(64, 4);
 	Scene scene("test.obj", Ss);
 	
 	Light simpleLight(0.8f, Ss);
-
+	SpecularBRDF SpeBRDF(Ss);
 	
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
@@ -150,20 +153,26 @@ int main(void)
 
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
-
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
-
 	GLuint lightCoeffsID = glGetUniformLocation(programID, "lightCoeffs");
-	simpleLight.RotateLight(120.0f, 0.0f);
-	
+	GLuint specCoeffsID = glGetUniformLocation(programID, "specularCoeffs"); 
+	GLuint eyePosWorldID = glGetUniformLocation(programID, "EyePos_worldspace");
 
+
+	glm::mat4 specCoeffs = SpeBRDF.getInRadianceCoeffsMatrix();
+	
 	float lastTime = glfwGetTime();
 	float currentTime = 0.0, fps = 100.0;
 	int nbFrames = 0;
+
+	Controller controller;
 	do {
+
+
+
 		glViewport(0, 0, 1024, 1024); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 
 									  // We don't use bias in the shader, but instead we draw back faces, 
@@ -191,13 +200,14 @@ int main(void)
 		// Use our shader
 		glUseProgram(programID);
 		// Compute the MVP matrix from keyboard and mouse input
-		computeMatricesFromInputs();
-		glm::mat4 ProjectionMatrix = getProjectionMatrix();
-		glm::mat4 ViewMatrix = getViewMatrix();
+		
+		controller.computeMatricesFromInputs();
+		glm::mat4 ProjectionMatrix = controller.getProjectionMatrix();
+		glm::mat4 ViewMatrix = controller.getViewMatrix();
 		//ViewMatrix = glm::lookAt(glm::vec3(14,6,4), glm::vec3(0,1,0), glm::vec3(0,1,0));
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-		simpleLight.RotateLight(0.0f, 0.1f);
+		simpleLight.RotateLight(30.0f, currentTime * 90.0f);
 		glm::mat4 lightCoeffs = simpleLight.getRotatedCoeffsMatrix();
 
 		// Send our transformation to the currently bound shader, 
@@ -206,6 +216,10 @@ int main(void)
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
 		glUniformMatrix4fv(lightCoeffsID, 1, GL_FALSE, &lightCoeffs[0][0]);
+		glUniformMatrix4fv(specCoeffsID, 1, GL_FALSE, &specCoeffs[0][0]);
+		vec3 tempEyePosWorld = controller.position;
+		glUniform3f(eyePosWorldID, tempEyePosWorld.x, tempEyePosWorld.y, tempEyePosWorld.z);
+		
 		// Bind our texture in Texture Unit 0
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Texture);

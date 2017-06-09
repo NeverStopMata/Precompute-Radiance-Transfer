@@ -30,9 +30,6 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="common\controls.hpp">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="common\objloader.hpp">
       <Filter>common</Filter>
     </ClInclude>
@@ -78,16 +75,19 @@
     <ClInclude Include="Ray.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SpecularBRDF.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenCL_Math.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PRT_SH.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="common\controls.cpp">
-      <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="common\objloader.cpp">
       <Filter>common</Filter>
@@ -132,6 +132,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Ray.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SpecularBRDF.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PRT_SH.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenCL_Math.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
