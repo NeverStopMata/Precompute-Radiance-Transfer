@@ -24,9 +24,9 @@ using namespace std;
 #include "common/vboindexer.hpp"
 #include "Scene.h"
 #include "Light.h"
-#include "SpecularBRDF.h"
 #include "Controller.h"
 #include "OpenCL_Math.h"
+#include "BRDF_Manager.h"
 int main(void)
 {
 	// Initialise GLFW
@@ -95,12 +95,17 @@ int main(void)
 
 	
 	GLuint Texture = loadBMP_custom("blue.bmp");
+
+
 	SampleSet Ss(64, 4);
 	Scene scene("test.obj", Ss);
-	
 	Light simpleLight(0.8f, Ss);
-	SpecularBRDF SpeBRDF(Ss);
-	
+	BRDF_Manager brdfMnger(Ss);
+	float* verTransMats = new float[scene.numVertices * 256];
+	float* specBrightness = new float[scene.numVertices];
+	//scene.ExportAllTransMats(verTransMats);
+	OpenCL_Math CLtool;
+
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -117,14 +122,14 @@ int main(void)
 	glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(glm::vec3), &scene.indexed_normals[0], GL_STATIC_DRAW);
 	
 
-	vector<float>tempCoeffsList[4];
+	vector<float>tempcoeffsVecList[4];
 	for (int k = 0; k < 4; k++)
 	{
-		for (int i = 0; i < scene.indexed_coeffsList.size(); i++)
+		for (int i = 0; i < scene.indexed_coeffsVecList.size(); i++)
 		{
 			for (int j = 0; j < Ss.numBands; j++)
 			{
-				tempCoeffsList[k].push_back(scene.indexed_coeffsList[i][k * 4 + j]);
+				tempcoeffsVecList[k].push_back(scene.indexed_coeffsVecList[i].Array[k * 4 + j]);
 			}
 		}
 	}
@@ -134,8 +139,13 @@ int main(void)
 	for (int i = 0; i < 4; i++)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, coeffsbuffer[i]);
-		glBufferData(GL_ARRAY_BUFFER, scene.indexed_coeffsList.size() * sizeof(vec4), &tempCoeffsList[i][0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, scene.indexed_coeffsVecList.size() * sizeof(vec4), &tempcoeffsVecList[i][0], GL_STATIC_DRAW);
 	}
+
+	//GLuint specBritBuffer;
+	//glGenBuffers(1, &specBritBuffer);
+	//glBindBuffer(GL_ARRAY_BUFFER, specBritBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(glm::vec3), &scene.indexed_normals[0], GL_STATIC_DRAW);
 
 	// Generate a buffer for the indices as well
 	GLuint elementbuffer;
@@ -158,11 +168,9 @@ int main(void)
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 	GLuint lightCoeffsID = glGetUniformLocation(programID, "lightCoeffs");
-	GLuint specCoeffsID = glGetUniformLocation(programID, "specularCoeffs"); 
 	GLuint eyePosWorldID = glGetUniformLocation(programID, "EyePos_worldspace");
 
 
-	glm::mat4 specCoeffs = SpeBRDF.getInRadianceCoeffsMatrix();
 	
 	float lastTime = glfwGetTime();
 	float currentTime = 0.0, fps = 100.0;
@@ -171,7 +179,9 @@ int main(void)
 	Controller controller;
 	do {
 
-
+		/*glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, scene.indexed_vertices.size() * sizeof(glm::vec3), &scene.indexed_vertices[0], GL_STATIC_DRAW);*/
+		//CLtool.GetSpecBrightness(scene.numVertices, simpleLight.rotatedCoeffs.Array, brdfMnger.coeffsVec.Array, verTransMats, specBrightness);
 
 		glViewport(0, 0, 1024, 1024); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 
@@ -216,7 +226,6 @@ int main(void)
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
 		glUniformMatrix4fv(lightCoeffsID, 1, GL_FALSE, &lightCoeffs[0][0]);
-		glUniformMatrix4fv(specCoeffsID, 1, GL_FALSE, &specCoeffs[0][0]);
 		vec3 tempEyePosWorld = controller.position;
 		glUniform3f(eyePosWorldID, tempEyePosWorld.x, tempEyePosWorld.y, tempEyePosWorld.z);
 		
@@ -356,7 +365,8 @@ int main(void)
 	glDeleteProgram(programID);
 	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
-
+	delete[] verTransMats;
+	delete[] specBrightness;
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
 

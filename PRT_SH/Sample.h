@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "CoeffsVector16.h"
 using namespace glm;
 class Sample
 {
@@ -13,7 +14,7 @@ public:
 	vec3 direction;
 
 	//Values of each SH function at this point
-	float * shValues;
+	CoeffsVector16 shValues;
 public:
 	Sample();
 	~Sample();

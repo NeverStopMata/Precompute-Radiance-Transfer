@@ -1,10 +1,12 @@
 #pragma once
+#include <vector>
 #include "Sample.h"
 #include "SH_Calculator.h"
+using namespace std;
 class SampleSet
 {
 public:
-	Sample * all;
+	vector<Sample>all;
 	int numSamples;
 	int numBands;
 public:

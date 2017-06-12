@@ -91,7 +91,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Semester2Grade3\CG2\Project\PRT_SH\PRT_SH;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +133,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Semester2Grade3\CG2\Project\PRT_SH\PRT_SH;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -175,6 +175,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BRDF_Manager.h" />
+    <ClInclude Include="CoeffsMat.h" />
+    <ClInclude Include="CoeffsVector16.h" />
     <ClInclude Include="common\objloader.hpp" />
     <ClInclude Include="common\quaternion_utils.hpp" />
     <ClInclude Include="common\shader.hpp" />
@@ -191,12 +194,14 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SH_Calculator.h" />
     <ClInclude Include="SH_RotationManager.h" />
-    <ClInclude Include="SpecularBRDF.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BRDF_Manager.cpp" />
+    <ClCompile Include="CoeffsMat.cpp" />
+    <ClCompile Include="CoeffsVector16.cpp" />
     <ClCompile Include="common\objloader.cpp" />
     <ClCompile Include="common\quaternion_utils.cpp" />
     <ClCompile Include="common\shader.cpp" />
@@ -214,7 +219,6 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SH_Calculator.cpp" />
     <ClCompile Include="SH_RotationManager.cpp" />
-    <ClCompile Include="SpecularBRDF.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Triangle.cpp" />
   </ItemGroup>

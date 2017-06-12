@@ -6,6 +6,8 @@
 #include "vboindexer.hpp"
 
 #include <string.h> // for memcmp
+#include <iostream>
+using namespace std;
 
 
 // Returns true iif v1 can be considered equal to v2
@@ -78,7 +80,7 @@ struct PackedVertex{
 	glm::vec3 position;
 	glm::vec2 uv;
 	glm::vec3 normal;
-	float * coeffs;
+	CoeffsVector16 coeffsVec;
 	bool operator<(const PackedVertex that) const{
 		return memcmp((void*)this, (void*)&that, sizeof(PackedVertex))>0;
 	};
@@ -94,6 +96,7 @@ bool getSimilarVertexIndex_fast(
 		return false;
 	}else{
 		result = it->second;
+		cout << "╬сх╩ур╣╫ак" << endl;
 		return true;
 	}
 }
@@ -102,20 +105,20 @@ void indexVBO(
 	std::vector<glm::vec3> & in_vertices,
 	std::vector<glm::vec2> & in_uvs,
 	std::vector<glm::vec3> & in_normals,
-	std::vector<float *> &   in_coeffsList,
+	std::vector<CoeffsVector16> &   in_coeffsVecList,
 
 	std::vector<unsigned short> & out_indices,
 	std::vector<glm::vec3> & out_vertices,
 	std::vector<glm::vec2> & out_uvs,
 	std::vector<glm::vec3> & out_normals,
-	std::vector<float *> & out_coeffsList
+	std::vector<CoeffsVector16> & out_coeffsVecList
 ){
 	std::map<PackedVertex,unsigned short> VertexToOutIndex;
 
 	// For each input vertex
 	for ( unsigned int i=0; i<in_vertices.size(); i++ ){
 
-		PackedVertex packed = {in_vertices[i], in_uvs[i], in_normals[i], in_coeffsList[i]};
+		PackedVertex packed = {in_vertices[i], in_uvs[i], in_normals[i], in_coeffsVecList[i]};
 		
 
 		// Try to find a similar vertex in out_XXXX
@@ -128,7 +131,7 @@ void indexVBO(
 			out_vertices.push_back( in_vertices[i]);
 			out_uvs     .push_back( in_uvs[i]);
 			out_normals .push_back( in_normals[i]);
-			out_coeffsList.push_back(in_coeffsList[i]);
+			out_coeffsVecList.push_back(in_coeffsVecList[i]);
 			unsigned short newindex = (unsigned short)out_vertices.size() - 1;
 			out_indices .push_back( newindex );
 			VertexToOutIndex[ packed ] = newindex;

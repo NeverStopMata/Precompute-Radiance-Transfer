@@ -1,17 +1,17 @@
 #ifndef VBOINDEXER_HPP
 #define VBOINDEXER_HPP
-
+#include <CoeffsVector16.h>
 void indexVBO(
 	std::vector<glm::vec3> & in_vertices,
 	std::vector<glm::vec2> & in_uvs,
 	std::vector<glm::vec3> & in_normals,
-	std::vector<float *> &   in_coeffsList,
+	std::vector<CoeffsVector16> &   in_coeffsVecList,
 
 	std::vector<unsigned short> & out_indices,
 	std::vector<glm::vec3> & out_vertices,
 	std::vector<glm::vec2> & out_uvs,
 	std::vector<glm::vec3> & out_normals,
-	std::vector<float *> & out_coeffsList
+	std::vector<CoeffsVector16> & out_coeffsVecList
 );
 
 

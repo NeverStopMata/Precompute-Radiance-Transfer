@@ -75,13 +75,19 @@
     <ClInclude Include="Ray.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SpecularBRDF.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Controller.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="OpenCL_Math.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CoeffsVector16.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CoeffsMat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BRDF_Manager.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -134,9 +140,6 @@
     <ClCompile Include="Ray.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SpecularBRDF.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Controller.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -144,6 +147,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="OpenCL_Math.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CoeffsVector16.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CoeffsMat.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BRDF_Manager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

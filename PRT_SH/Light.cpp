@@ -10,17 +10,15 @@ Light::Light(float size, SampleSet Ss)
 	int numFunctions = Ss.numBands * Ss.numBands;
 	numBands = Ss.numBands;
 	this->size = size;
-	coeffs = new float[numFunctions];
-	rotatedCoeffs = new float[numFunctions];
 	for (int i = 0; i < numFunctions; i++)
 	{
-		coeffs[i] = 0.0f;
+		unrotatedCoeffs.Array[i] = 0.0f;
 		for (int j = 0; j < Ss.numSamples; j++)
 		{
-			coeffs[i] += IsInLightArea(Ss.all[j].theta) * Ss.all[j].shValues[i];
+			unrotatedCoeffs.Array[i] += IsInLightArea(Ss.all[j].theta) * Ss.all[j].shValues.Array[i];
 			
 		}
-		coeffs[i] *= 4.0f * M_PI / Ss.numSamples;
+		unrotatedCoeffs.Array[i] *= 4.0f * M_PI / Ss.numSamples;
 	}
 }
 
@@ -36,8 +34,7 @@ float Light::IsInLightArea(float theta)
 
 void  Light::RotateLight(float theta, float phi)
 {
-	SH_RotationManager SHRotManager;
-	SHRotManager.RotateSHCoefficients(numBands, coeffs, rotatedCoeffs, theta, phi);
+	rotatedCoeffs = unrotatedCoeffs.rotate(theta, phi);
 }
 
 mat4 Light::getRotatedCoeffsMatrix()
@@ -47,7 +44,7 @@ mat4 Light::getRotatedCoeffsMatrix()
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			resultMatrix[i][j] = this->rotatedCoeffs[i * 4 + j];
+			resultMatrix[i][j] = this->rotatedCoeffs.Array[i * 4 + j];
 		}
 	}
 	return resultMatrix;
