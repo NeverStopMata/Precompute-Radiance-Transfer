@@ -29,6 +29,7 @@ Scene::Scene(const char * filePath,SampleSet Ss)
 
 	//GenerateDirectCoeffs(Ss);
 	GenerateDirectCoeffs_CL(Ss);
+	GenerateTransferMatrix(Ss);
 	//indexVBO(temp_vertices, temp_uvs, temp_normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 	indexVBO(vertices, uvs, normals, coeffsList, indices, indexed_vertices, indexed_uvs, indexed_normals, indexed_coeffsList);
 }
