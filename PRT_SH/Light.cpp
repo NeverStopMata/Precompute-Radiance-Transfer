@@ -39,13 +39,5 @@ void  Light::RotateLight(float theta, float phi)
 
 mat4 Light::getRotatedCoeffsMatrix()
 {
-	mat4 resultMatrix;
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++)
-		{
-			resultMatrix[i][j] = this->rotatedCoeffs.Array[i * 4 + j];
-		}
-	}
-	return resultMatrix;
+	return this->rotatedCoeffs.GetMatrix4X4();
 }

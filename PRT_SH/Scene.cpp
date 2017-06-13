@@ -28,9 +28,12 @@ Scene::Scene(const char * filePath,SampleSet Ss)
 	volume_vertices = temp_vertices;
 	numVolVertices = volume_vertices.size();
 	numVertices = vertices.size();
+	
+	
+	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+	numIndices = indexed_vertices.size();
 	GenerateDirectCoeffs_CL(Ss);
-	//GenerateTransferMatrix_CL(Ss);
-	indexVBO(vertices, uvs, normals, coeffsVecList, indices, indexed_vertices, indexed_uvs, indexed_normals, indexed_coeffsVecList);
+	GenerateTransferMatrix_CL(Ss);
 }
 
 Scene::~Scene()
@@ -39,12 +42,12 @@ Scene::~Scene()
 	vertices.clear();
 	uvs.clear();
 	normals.clear();
-	coeffsVecList.clear();
 	indices.clear();
 	indexed_vertices.clear();
 	indexed_uvs.clear();
 	indexed_normals.clear();
 	indexed_coeffsVecList.clear();
+	indexed_coeffsMatList.clear();
 }
 
 void Scene::SubFacesGenerate(stack<Triangle> stack_triangles)
@@ -100,11 +103,10 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 	const int numFunctions = sampleset.numBands * sampleset.numBands;
 
 	//Create space for the SH coefficients in each vertex
-	const int numVertices = vertices.size();
 
 
 	vector<Triangle> triangleList4BlockDetect = this->GetVolumeTriangleList();
-	for (int i = 0; i < numVertices; ++i)
+	for (int i = 0; i < numIndices; ++i)
 	{
 		CoeffsVector16 Coeffs;
 		for (int j = 0; j < numFunctions; j++)
@@ -115,7 +117,7 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 		int blockNum = 0;
 		for (int j = 0; j < sampleset.numSamples; j++)
 		{
-			float dotResult = dot(sampleset.all[j].direction, normals[i]);
+			float dotResult = dot(sampleset.all[j].direction, indexed_normals[i]);
 			
 			if (dotResult > 0.0f)
 			{
@@ -124,7 +126,7 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 					float contribution = dotResult * sampleset.all[j].shValues[k];
 					Coeffs[k] += contribution;
 				}*/
-				Ray currentRay(this->vertices[i], sampleset.all[j].direction, normals[i]);
+				Ray currentRay(this->indexed_vertices[i], sampleset.all[j].direction, indexed_normals[i]);
 				if ((lastBlockFaceNum = currentRay.IsBlocked(triangleList4BlockDetect, lastBlockFaceNum)) < 0)
 				{
 					for (int k = 0; k < numFunctions; ++k)
@@ -140,7 +142,7 @@ void Scene::GenerateDirectCoeffs(SampleSet sampleset)
 		{
 			Coeffs.Array[j] *= 4 * M_PI / sampleset.numSamples;
 		}
-		this->coeffsVecList.push_back(Coeffs);
+		this->indexed_coeffsVecList.push_back(Coeffs);
 		cout <<"current vertex: NO. "<< i <<"  "<<"blocked rays number:"<<blockNum<< endl;
 	}
 }
@@ -153,15 +155,15 @@ void Scene::GenerateDirectCoeffs_CL(SampleSet sampleset)
 	{
 		sampleDircts[i] = sampleset.all[i / 3].direction[i % 3];
 	}
-	float* dotNormals = new float[numVertices * 3];
-	for (int i = 0; i < numVertices * 3; i++)
+	float* dotNormals = new float[numIndices * 3];
+	for (int i = 0; i < numIndices * 3; i++)
 	{
-		dotNormals[i] = normals[i / 3][i % 3];
+		dotNormals[i] = indexed_normals[i / 3][i % 3];
 	}
-	float* dotPos = new float[numVertices * 3];
-	for (int i = 0; i < numVertices * 3; i++)
+	float* dotPos = new float[numIndices * 3];
+	for (int i = 0; i < numIndices * 3; i++)
 	{
-		dotPos[i] = vertices[i / 3][i % 3];
+		dotPos[i] = indexed_vertices[i / 3][i % 3];
 	}
 	float* vertexPos = new float[numVolVertices * 3];
 	for (int i = 0; i < numVolVertices * 3; i++)
@@ -175,11 +177,11 @@ void Scene::GenerateDirectCoeffs_CL(SampleSet sampleset)
 		faceNromals[i] = triangleList4BlockDetect[i / 3].faceNormal[i % 3];
 	}
 	int numDots_round;
-	numDots_round = (numVertices / 16 + 1)*16;
+	numDots_round = (numIndices / 16 + 1)*16;
 	float* sceneMatrix = new float[sampleset.numSamples * numDots_round];
-	for (int i = sampleset.numSamples * numVertices; i < sampleset.numSamples * numDots_round; i++)
+	for (int i = sampleset.numSamples * numIndices; i < sampleset.numSamples * numDots_round; i++)
 		sceneMatrix[i] = 0.0f;
-	CLtool.GetSceneMatrix(sampleset.numSamples, numVertices, numVolVertices, sampleDircts, dotNormals, dotPos, vertexPos, faceNromals, sceneMatrix);
+	CLtool.GetSceneMatrix(sampleset.numSamples, numIndices, numVolVertices, sampleDircts, dotNormals, dotPos, vertexPos, faceNromals, sceneMatrix);
 	int numSH_Mat = sampleset.numSamples * sampleset.numBands * sampleset.numBands;
 	float * SH_BasicMat = new float[numSH_Mat];
 	for (int i = 0; i < numSH_Mat; i++)
@@ -188,12 +190,12 @@ void Scene::GenerateDirectCoeffs_CL(SampleSet sampleset)
 	}
 	float * coeffMat = new float[sampleset.numBands * sampleset.numBands * numDots_round];
 	CLtool.MatMultip(16, numDots_round, sampleset.numSamples, SH_BasicMat, sceneMatrix, coeffMat);
-	for (int i = 0; i < numVertices; i++)
+	for (int i = 0; i < numIndices; i++)
 	{
 		CoeffsVector16 tempCoeffs;
 		for (int j = 0; j < 16; j++)
 			tempCoeffs.Array[j] = coeffMat[i*sampleset.numBands * sampleset.numBands + j];
-		coeffsVecList.push_back(tempCoeffs);
+		indexed_coeffsVecList.push_back(tempCoeffs);
 	}
 	delete[] sampleDircts;
 	delete[] dotNormals;
@@ -228,7 +230,7 @@ void Scene::GenerateTransferMatrix_CL(SampleSet sampleset)
 	float * SH_BasicMat_T = new float[numSH_Mat];
 	for (int i = 0; i < numSH_Mat; i++)
 	{
-		SH_BasicMat_T[i] = sampleset.all[i % sampleset.numSamples].shValues.Array[i / sampleset.numSamples];
+		SH_BasicMat_T[i] = sampleset.all[i % sampleset.numSamples].shValues.Array[i / sampleset.numSamples] * 4.0f * M_PI / sampleset.numSamples;
 	}
 
 	float* sampleDircts = new float[sampleset.numSamples * 3];
@@ -254,10 +256,10 @@ void Scene::GenerateTransferMatrix_CL(SampleSet sampleset)
 	float * transferMat = new float[sampleset.numSamples * sampleset.numSamples];
 	float * tempMat = new float[sampleset.numSamples * numFunctions];
 	//Create space for the SH coefficients in each vertex
-	for (int i = 0; i < numVertices; ++i)
+	for (int i = 0; i < numIndices; ++i)
 	{
-		float dotNormal[3] = { normals[i].x,normals[i].y ,normals[i].z };
-		float dotPos[3] = { vertices[i].x,vertices[i].y ,vertices[i].z };
+		float dotNormal[3] = { indexed_normals[i].x,indexed_normals[i].y ,indexed_normals[i].z };
+		float dotPos[3] = { indexed_vertices[i].x,indexed_vertices[i].y ,indexed_vertices[i].z };
 		
 		CLtool.GetSpecTransferMat(sampleset.numSamples, volume_vertices.size(), sampleDircts, dotNormal, dotPos, vertexPos, faceNromals, transferMat);
 		CLtool.MatMultip(numFunctions, sampleset.numSamples, sampleset.numSamples, SH_BasicMat, transferMat, tempMat);
@@ -265,7 +267,7 @@ void Scene::GenerateTransferMatrix_CL(SampleSet sampleset)
 		float specResult = 0;
 		for (int j = 0; j < sampleset.numSamples * sampleset.numSamples; j++)
 			specResult += transferMat[j];
-		coeffsMatList.push_back(CoeffsMat(transferCoeffsMat));
+		indexed_coeffsMatList.push_back(CoeffsMat(transferCoeffsMat));
 		printf("Vertex %d done  res: %f\n", i,specResult);
 	}
 	delete[] tempMat;
@@ -280,11 +282,11 @@ void Scene::GenerateTransferMatrix_CL(SampleSet sampleset)
 
 void Scene::ExportAllTransMats(float * target)
 {
-	for (int i = 0; i < numVertices; i++)
+	for (int i = 0; i < numIndices; i++)
 	{
 		for (int j = 0; j < 256; j++)
 		{
-			target[i * 256 + j] = this->coeffsMatList[i].Array[j];
+			target[i * 256 + j] = this->indexed_coeffsMatList[i].Array[j];
 		}
 	}
 }

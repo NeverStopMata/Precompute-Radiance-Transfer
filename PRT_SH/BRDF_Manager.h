@@ -11,7 +11,11 @@ public:
 	BRDF_Manager();
 	BRDF_Manager(SampleSet Ss);
 	~BRDF_Manager();
+	void rotateView(float theta, float phi);
+	mat4 BRDF_Manager::getUnRotCoeffsMatrix();
 public:
+	CoeffsVector16 unRotatedcoeffsVec;
 	CoeffsVector16 coeffsVec;
+	
 };
 

@@ -17,18 +17,19 @@ class Scene
 public:
 	int numVertices;
 	int numVolVertices;
+	int numIndices;
 	vector<vec3> volume_vertices;
 	vector<vec3> vertices;
 	vector<vec2> uvs;
 	vector<vec3> normals;
-	vector<CoeffsVector16> coeffsVecList;
-	vector<CoeffsMat> coeffsMatList;
+	//vector<CoeffsVector16> coeffsVecList;
+	//vector<CoeffsMat> coeffsMatList;
 	vector<unsigned short> indices;
 	vector<vec3> indexed_vertices;
 	vector<vec2> indexed_uvs;
 	vector<vec3> indexed_normals;
-	
 	vector<CoeffsVector16> indexed_coeffsVecList;
+	vector<CoeffsMat> indexed_coeffsMatList;
 	
 public:
 	Scene(const char * filePath, SampleSet Ss);

@@ -101,9 +101,11 @@ int main(void)
 	Scene scene("test.obj", Ss);
 	Light simpleLight(0.8f, Ss);
 	BRDF_Manager brdfMnger(Ss);
-	float* verTransMats = new float[scene.numVertices * 256];
-	float* specBrightness = new float[scene.numVertices];
-	//scene.ExportAllTransMats(verTransMats);
+	float* verTransMats = new float[scene.numIndices * 256];
+	float* specBrightness = new float[scene.numIndices];
+	//for (int i = 0; i < scene.numIndices; i++)
+	//	specBrightness[i] = 0.5f;
+	scene.ExportAllTransMats(verTransMats);
 	OpenCL_Math CLtool;
 
 	GLuint vertexbuffer;
@@ -121,6 +123,10 @@ int main(void)
 	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 	glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(glm::vec3), &scene.indexed_normals[0], GL_STATIC_DRAW);
 	
+	GLuint specBritnessbuffer;
+	glGenBuffers(1, &specBritnessbuffer);
+	/*glBindBuffer(GL_ARRAY_BUFFER, specBritnessbuffer);
+	glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(float), &scene.indexed_normals[0], GL_STATIC_DRAW);*/
 
 	vector<float>tempcoeffsVecList[4];
 	for (int k = 0; k < 4; k++)
@@ -177,12 +183,11 @@ int main(void)
 	int nbFrames = 0;
 
 	Controller controller;
+
+
+	
 	do {
-
-		/*glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glBufferData(GL_ARRAY_BUFFER, scene.indexed_vertices.size() * sizeof(glm::vec3), &scene.indexed_vertices[0], GL_STATIC_DRAW);*/
-		//CLtool.GetSpecBrightness(scene.numVertices, simpleLight.rotatedCoeffs.Array, brdfMnger.coeffsVec.Array, verTransMats, specBrightness);
-
+		
 		glViewport(0, 0, 1024, 1024); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 
 									  // We don't use bias in the shader, but instead we draw back faces, 
@@ -217,7 +222,7 @@ int main(void)
 		//ViewMatrix = glm::lookAt(glm::vec3(14,6,4), glm::vec3(0,1,0), glm::vec3(0,1,0));
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-		simpleLight.RotateLight(30.0f, currentTime * 90.0f);
+		simpleLight.RotateLight(0.0f,0.0f);
 		glm::mat4 lightCoeffs = simpleLight.getRotatedCoeffsMatrix();
 
 		// Send our transformation to the currently bound shader, 
@@ -234,6 +239,12 @@ int main(void)
 		glBindTexture(GL_TEXTURE_2D, Texture);
 		// Set our "myTextureSampler" sampler to user Texture Unit 0
 		glUniform1i(TextureID, 0);
+
+		//vec3 eyeDir = normalize(tempEyePosWorld);
+		//brdfMnger.rotateView(acos(eyeDir.y)*180.0f / M_PI, acos(eyeDir.x / sqrt(1 - eyeDir.y*eyeDir.y))*180.0f / M_PI);
+		//CLtool.GetSpecBrightness(scene.numIndices, simpleLight.rotatedCoeffs.Array, brdfMnger.coeffsVec.Array, verTransMats, specBrightness);
+		//glBindBuffer(GL_ARRAY_BUFFER, specBritnessbuffer);
+		//glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(float), specBrightness, GL_STATIC_DRAW);
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
@@ -314,6 +325,16 @@ int main(void)
 			0,                                // stride
 			(void*)0                          // array buffer offset
 			);
+		//glEnableVertexAttribArray(7);
+		//glBindBuffer(GL_ARRAY_BUFFER, specBritnessbuffer);
+		//glVertexAttribPointer(
+		//	7,                                // attribute
+		//	1,                                // size
+		//	GL_FLOAT,                         // type
+		//	GL_FALSE,                         // normalized?
+		//	0,                                // stride
+		//	(void*)0                          // array buffer offset
+		//	);
 		// Index buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 

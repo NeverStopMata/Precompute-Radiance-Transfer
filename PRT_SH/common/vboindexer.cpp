@@ -105,20 +105,18 @@ void indexVBO(
 	std::vector<glm::vec3> & in_vertices,
 	std::vector<glm::vec2> & in_uvs,
 	std::vector<glm::vec3> & in_normals,
-	std::vector<CoeffsVector16> &   in_coeffsVecList,
 
 	std::vector<unsigned short> & out_indices,
 	std::vector<glm::vec3> & out_vertices,
 	std::vector<glm::vec2> & out_uvs,
-	std::vector<glm::vec3> & out_normals,
-	std::vector<CoeffsVector16> & out_coeffsVecList
+	std::vector<glm::vec3> & out_normals
 ){
 	std::map<PackedVertex,unsigned short> VertexToOutIndex;
 
 	// For each input vertex
 	for ( unsigned int i=0; i<in_vertices.size(); i++ ){
 
-		PackedVertex packed = {in_vertices[i], in_uvs[i], in_normals[i], in_coeffsVecList[i]};
+		PackedVertex packed = {in_vertices[i], in_uvs[i], in_normals[i]};
 		
 
 		// Try to find a similar vertex in out_XXXX
@@ -131,7 +129,6 @@ void indexVBO(
 			out_vertices.push_back( in_vertices[i]);
 			out_uvs     .push_back( in_uvs[i]);
 			out_normals .push_back( in_normals[i]);
-			out_coeffsVecList.push_back(in_coeffsVecList[i]);
 			unsigned short newindex = (unsigned short)out_vertices.size() - 1;
 			out_indices .push_back( newindex );
 			VertexToOutIndex[ packed ] = newindex;
