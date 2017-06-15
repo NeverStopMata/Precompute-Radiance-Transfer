@@ -15,6 +15,7 @@ public:
 	void OpenCL_Math::GetSceneMatrix(int numSample, int numDot, int numVertices, float * sampleDircts, float * dotNormals, float * dotPos, float * vertPos, float * faceNormals, float * res);
 	void OpenCL_Math::GetSpecTransferMat(int numSample, int numVertices, float * sampleDircts, float * normal, float * dotPos, float * vertPos, float * faceNormals, float * res);
 	void OpenCL_Math::GetSpecBrightness(int numDots, float* lightCoeffs, float* brdfCoeffs, float* transferMats, float * res);
+	void OpenCL_Math::GetTransLightCoes(int numDots, float* lightCoeffs, float* transferMats, float * res);
 public:
 	std::vector<cl::Platform> all_platforms;
 	cl::Platform default_platform;

@@ -79,13 +79,10 @@ int main(void)
 
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
-
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS);
-
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
@@ -103,6 +100,7 @@ int main(void)
 	BRDF_Manager brdfMnger(Ss);
 	float* verTransMats = new float[scene.numIndices * 256];
 	float* specBrightness = new float[scene.numIndices];
+	float* transLightCoes = new float[scene.numIndices * 16];
 	//for (int i = 0; i < scene.numIndices; i++)
 	//	specBrightness[i] = 0.5f;
 	scene.ExportAllTransMats(verTransMats);
@@ -128,30 +126,23 @@ int main(void)
 	/*glBindBuffer(GL_ARRAY_BUFFER, specBritnessbuffer);
 	glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(float), &scene.indexed_normals[0], GL_STATIC_DRAW);*/
 
-	vector<float>tempcoeffsVecList[4];
-	for (int k = 0; k < 4; k++)
+	vector<float>DefuseCoeffsVecs;
+	for (int i = 0; i < scene.indexed_coeffsVecList.size(); i++)
 	{
-		for (int i = 0; i < scene.indexed_coeffsVecList.size(); i++)
+		for (int j = 0; j < 16; j++)
 		{
-			for (int j = 0; j < Ss.numBands; j++)
-			{
-				tempcoeffsVecList[k].push_back(scene.indexed_coeffsVecList[i].Array[k * 4 + j]);
-			}
+			DefuseCoeffsVecs.push_back(scene.indexed_coeffsVecList[i].Array[j]);
 		}
 	}
 
-	GLuint coeffsbuffer[4];
-	glGenBuffers(4, coeffsbuffer);
-	for (int i = 0; i < 4; i++)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, coeffsbuffer[i]);
-		glBufferData(GL_ARRAY_BUFFER, scene.indexed_coeffsVecList.size() * sizeof(vec4), &tempcoeffsVecList[i][0], GL_STATIC_DRAW);
-	}
+	GLuint defuseCoeffbuffer;
+	glGenBuffers(1, &defuseCoeffbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, defuseCoeffbuffer);
+	glBufferData(GL_ARRAY_BUFFER, DefuseCoeffsVecs.size() * sizeof(float), &DefuseCoeffsVecs[0], GL_STATIC_DRAW);
 
-	//GLuint specBritBuffer;
-	//glGenBuffers(1, &specBritBuffer);
-	//glBindBuffer(GL_ARRAY_BUFFER, specBritBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(glm::vec3), &scene.indexed_normals[0], GL_STATIC_DRAW);
+	GLuint transLightCoesbuffer;
+	glGenBuffers(1, &transLightCoesbuffer);
+
 
 	// Generate a buffer for the indices as well
 	GLuint elementbuffer;
@@ -166,7 +157,6 @@ int main(void)
 	
 	//// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders("vertex.glsl", "fragment.glsl");
-
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 	// Get a handle for our "MVP" uniform
@@ -174,7 +164,9 @@ int main(void)
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 	GLuint lightCoeffsID = glGetUniformLocation(programID, "lightCoeffs");
+	GLuint brdfCoeffsID = glGetUniformLocation(programID, "brdfCoeffs");
 	GLuint eyePosWorldID = glGetUniformLocation(programID, "EyePos_worldspace");
+	
 
 
 	
@@ -183,7 +175,7 @@ int main(void)
 	int nbFrames = 0;
 
 	Controller controller;
-
+	
 
 	
 	do {
@@ -222,15 +214,16 @@ int main(void)
 		//ViewMatrix = glm::lookAt(glm::vec3(14,6,4), glm::vec3(0,1,0), glm::vec3(0,1,0));
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-		simpleLight.RotateLight(0.0f,0.0f);
+		simpleLight.RotateLight(30.0f, 15.0f * currentTime);
 		glm::mat4 lightCoeffs = simpleLight.getRotatedCoeffsMatrix();
-
+		glm::mat4 brdfCoeffs = brdfMnger.getUnRotCoeffsMatrix();
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
 		glUniformMatrix4fv(lightCoeffsID, 1, GL_FALSE, &lightCoeffs[0][0]);
+		glUniformMatrix4fv(brdfCoeffsID, 1, GL_FALSE, &brdfCoeffs[0][0]);
 		vec3 tempEyePosWorld = controller.position;
 		glUniform3f(eyePosWorldID, tempEyePosWorld.x, tempEyePosWorld.y, tempEyePosWorld.z);
 		
@@ -239,10 +232,9 @@ int main(void)
 		glBindTexture(GL_TEXTURE_2D, Texture);
 		// Set our "myTextureSampler" sampler to user Texture Unit 0
 		glUniform1i(TextureID, 0);
-
-		//vec3 eyeDir = normalize(tempEyePosWorld);
-		//brdfMnger.rotateView(acos(eyeDir.y)*180.0f / M_PI, acos(eyeDir.x / sqrt(1 - eyeDir.y*eyeDir.y))*180.0f / M_PI);
-		//CLtool.GetSpecBrightness(scene.numIndices, simpleLight.rotatedCoeffs.Array, brdfMnger.coeffsVec.Array, verTransMats, specBrightness);
+		CLtool.GetTransLightCoes(scene.numIndices, simpleLight.rotatedCoeffs.Array, verTransMats, transLightCoes);
+		glBindBuffer(GL_ARRAY_BUFFER, transLightCoesbuffer);
+		glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * 16 * sizeof(float), transLightCoes, GL_STATIC_DRAW);
 		//glBindBuffer(GL_ARRAY_BUFFER, specBritnessbuffer);
 		//glBufferData(GL_ARRAY_BUFFER, scene.indexed_normals.size() * sizeof(float), specBrightness, GL_STATIC_DRAW);
 
@@ -283,48 +275,95 @@ int main(void)
 			);
 
 		glEnableVertexAttribArray(3);
-		glBindBuffer(GL_ARRAY_BUFFER, coeffsbuffer[0]);
+		glBindBuffer(GL_ARRAY_BUFFER, defuseCoeffbuffer);
 		glVertexAttribPointer(
 			3,                                // attribute
 			4,                                // size
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
-			0,                                // stride
+			16*sizeof(float),                                // stride
 			(void*)0                          // array buffer offset
 			);
 
 		glEnableVertexAttribArray(4);
-		glBindBuffer(GL_ARRAY_BUFFER, coeffsbuffer[1]);
+		glBindBuffer(GL_ARRAY_BUFFER, defuseCoeffbuffer);
 		glVertexAttribPointer(
 			4,                                // attribute
 			4,                                // size
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
+			16 * sizeof(float),                                // stride
+			(void*)(4 * sizeof(float))                         // array buffer offset
 			);
 
 		glEnableVertexAttribArray(5);
-		glBindBuffer(GL_ARRAY_BUFFER, coeffsbuffer[2]);
+		glBindBuffer(GL_ARRAY_BUFFER, defuseCoeffbuffer);
 		glVertexAttribPointer(
 			5,                                // attribute
 			4,                                // size
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
+			16 * sizeof(float),                                // stride
+			(void*)(8 * sizeof(float))                          // array buffer offset
 			);
 
 		glEnableVertexAttribArray(6);
-		glBindBuffer(GL_ARRAY_BUFFER, coeffsbuffer[3]);
+		glBindBuffer(GL_ARRAY_BUFFER, defuseCoeffbuffer);
 		glVertexAttribPointer(
 			6,                                // attribute
 			4,                                // size
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
-			0,                                // stride
+			16 * sizeof(float),                                // stride
+			(void*)(12* sizeof(float))                         // array buffer offset
+			);
+
+
+		glEnableVertexAttribArray(7);
+		glBindBuffer(GL_ARRAY_BUFFER, transLightCoesbuffer);
+		glVertexAttribPointer(
+			7,                                // attribute
+			4,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			16 * sizeof(float),                                // stride
 			(void*)0                          // array buffer offset
 			);
+
+		glEnableVertexAttribArray(8);
+		glBindBuffer(GL_ARRAY_BUFFER, transLightCoesbuffer);
+		glVertexAttribPointer(
+			8,                                // attribute
+			4,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			16 * sizeof(float),                                // stride
+			(void*)(4 * sizeof(float))                         // array buffer offset
+			);
+
+		glEnableVertexAttribArray(9);
+		glBindBuffer(GL_ARRAY_BUFFER, transLightCoesbuffer);
+		glVertexAttribPointer(
+			9,                                // attribute
+			4,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			16 * sizeof(float),                                // stride
+			(void*)(8 * sizeof(float))                          // array buffer offset
+			);
+
+		glEnableVertexAttribArray(10);
+		glBindBuffer(GL_ARRAY_BUFFER, transLightCoesbuffer);
+		glVertexAttribPointer(
+			10,                                // attribute
+			4,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			16 * sizeof(float),                                // stride
+			(void*)(12 * sizeof(float))                         // array buffer offset
+			);
+
+		
 		//glEnableVertexAttribArray(7);
 		//glBindBuffer(GL_ARRAY_BUFFER, specBritnessbuffer);
 		//glVertexAttribPointer(
@@ -378,16 +417,18 @@ int main(void)
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &uvbuffer);
 	glDeleteBuffers(1, &normalbuffer);
-	for (int i = 0; i < 4; i++)
-	{
-		glDeleteBuffers(1, &coeffsbuffer[i]);
-	}
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	glDeleteBuffers(1, &coeffsbuffer[i]);
+	//}
+	glDeleteBuffers(1, &defuseCoeffbuffer);
 	glDeleteBuffers(1, &elementbuffer);
 	glDeleteProgram(programID);
 	glDeleteTextures(1, &Texture);
 	glDeleteVertexArrays(1, &VertexArrayID);
 	delete[] verTransMats;
 	delete[] specBrightness;
+	delete[] transLightCoes;
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
 
