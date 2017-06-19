@@ -29,17 +29,21 @@ public:
 	vector<vec2> indexed_uvs;
 	vector<vec3> indexed_normals;
 	vector<CoeffsVector16> indexed_coeffsVecList;
+	vector<CoeffsVector16> indexed_IRcoesVecList;
 	vector<CoeffsMat> indexed_coeffsMatList;
 	
 public:
-	Scene(const char * filePath, SampleSet Ss);
+	Scene(const char * filePath, SampleSet Ss, bool hasPrecomputed);
 	~Scene();
 	void Scene::SubFacesGenerate(stack<Triangle> stack_triangles);
 	void Scene::AddTiangle(Triangle newTriangle);
 	void Scene::GenerateDirectCoeffs(SampleSet sampleset);
 	void Scene::GenerateDirectCoeffs_CL(SampleSet sampleset);
+	void Scene::GenerateInterRCoeffs_CL(SampleSet sampleset);
 	void Scene::GenerateTransferMatrix_CL(SampleSet sampleset);
 	void Scene::ExportAllTransMats(float * target);
 	vector<Triangle> Scene::GetVolumeTriangleList();
+	void Scene::ExportCoeffsToFile();
+	void Scene::ImportCoeffsFromFile();
 };
 

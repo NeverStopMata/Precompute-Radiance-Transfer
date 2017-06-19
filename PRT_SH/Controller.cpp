@@ -14,6 +14,7 @@ Controller::Controller()
 
 	speed = 3.0f; // 3 units / second
 	mouseSpeed = 0.005f;
+	isInterReflect = false;
 }
 
 
@@ -95,4 +96,17 @@ void Controller::computeMatricesFromInputs() {
 
 	// For the next frame, the "last time" will be "now"
 	lastTime = currentTime;
+}
+
+int Controller::getIsInterReflect()
+{
+	
+	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+	
 }

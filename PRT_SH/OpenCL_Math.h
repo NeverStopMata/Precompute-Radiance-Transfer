@@ -4,6 +4,7 @@
 #include <tchar.h>
 #include <CL\cl.hpp>
 #include <iostream>
+#include <fstream>
 using namespace std;
 class OpenCL_Math
 {
@@ -16,6 +17,7 @@ public:
 	void OpenCL_Math::GetSpecTransferMat(int numSample, int numVertices, float * sampleDircts, float * normal, float * dotPos, float * vertPos, float * faceNormals, float * res);
 	void OpenCL_Math::GetSpecBrightness(int numDots, float* lightCoeffs, float* brdfCoeffs, float* transferMats, float * res);
 	void OpenCL_Math::GetTransLightCoes(int numDots, float* lightCoeffs, float* transferMats, float * res);
+	void OpenCL_Math::GetDifInterRefCoeff(int numSample, int numVertices, int numFunc, float* h_SH_Mat_T, float * h_sampleDircts, float * h_normal, float * h_dotPos, float * h_vertPos, float * h_faceNormals, float * h_res);
 public:
 	std::vector<cl::Platform> all_platforms;
 	cl::Platform default_platform;

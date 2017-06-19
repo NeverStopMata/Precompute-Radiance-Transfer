@@ -96,7 +96,6 @@ bool getSimilarVertexIndex_fast(
 		return false;
 	}else{
 		result = it->second;
-		cout << "╬сх╩ур╣╫ак" << endl;
 		return true;
 	}
 }

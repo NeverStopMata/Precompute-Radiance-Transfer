@@ -167,5 +167,6 @@
     <None Include="vertex.glsl">
       <Filter>shaders</Filter>
     </None>
+    <None Include="MatsMulti.cl" />
   </ItemGroup>
 </Project>

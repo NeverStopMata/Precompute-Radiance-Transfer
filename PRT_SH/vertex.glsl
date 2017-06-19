@@ -4,14 +4,20 @@
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in vec3 vertexNormal_modelspace;
-layout(location = 3) in vec4 coeffs1;
-layout(location = 4) in vec4 coeffs2;
-layout(location = 5) in vec4 coeffs3;
-layout(location = 6) in vec4 coeffs4;
+layout(location = 3) in vec4 diffuCoeffs1;
+layout(location = 4) in vec4 diffuCoeffs2;
+layout(location = 5) in vec4 diffuCoeffs3;
+layout(location = 6) in vec4 diffuCoeffs4;
+
 layout(location = 7) in vec4 tlcoeffs1;
 layout(location = 8) in vec4 tlcoeffs2;
 layout(location = 9) in vec4 tlcoeffs3;
 layout(location = 10) in vec4 tlcoeffs4;
+
+layout(location = 11) in vec4 diffuCoeffs1_simple;
+layout(location = 12) in vec4 diffuCoeffs2_simple;
+layout(location = 13) in vec4 diffuCoeffs3_simple;
+layout(location = 14) in vec4 diffuCoeffs4_simple;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
@@ -23,6 +29,7 @@ uniform mat4 M;
 uniform mat4 lightCoeffs;
 uniform mat4 brdfCoeffs;
 uniform vec3 EyePos_worldspace;
+uniform int isInterReflect;
 
 
 
@@ -416,10 +423,21 @@ void main(){
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
 	float diffuseBritness = 0.0f;
-	diffuseBritness += dot(lightCoeffs[0], coeffs1);
-	diffuseBritness += dot(lightCoeffs[1], coeffs2);
-	diffuseBritness += dot(lightCoeffs[2], coeffs3);
-	diffuseBritness += dot(lightCoeffs[3], coeffs4);
+
+	if (isInterReflect == 1)
+	{
+		diffuseBritness += dot(lightCoeffs[0], diffuCoeffs1);
+		diffuseBritness += dot(lightCoeffs[1], diffuCoeffs2);
+		diffuseBritness += dot(lightCoeffs[2], diffuCoeffs3);
+		diffuseBritness += dot(lightCoeffs[3], diffuCoeffs4);
+	}
+	else
+	{
+		diffuseBritness += dot(lightCoeffs[0], diffuCoeffs1_simple);
+		diffuseBritness += dot(lightCoeffs[1], diffuCoeffs2_simple);
+		diffuseBritness += dot(lightCoeffs[2], diffuCoeffs3_simple);
+		diffuseBritness += dot(lightCoeffs[3], diffuCoeffs4_simple);
+	}
 	float SpecuBritness = 0.0f;
 	SpecuBritness += dot(rotatedBrdfCoes[0], tlcoeffs1);
 	SpecuBritness += dot(rotatedBrdfCoes[1], tlcoeffs2);

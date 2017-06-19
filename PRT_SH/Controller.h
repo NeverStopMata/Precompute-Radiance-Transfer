@@ -13,6 +13,7 @@ public:
 	~Controller();
 	mat4 Controller::getViewMatrix();
 	mat4 Controller::getProjectionMatrix();
+	int Controller::getIsInterReflect();
 	void Controller::computeMatricesFromInputs();
 public:
 	mat4 ViewMatrix;
@@ -29,5 +30,6 @@ public:
 
 	float speed; // 3 units / second
 	float mouseSpeed;
+	bool isInterReflect;
 };
 

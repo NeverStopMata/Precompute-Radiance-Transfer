@@ -223,6 +223,7 @@
     <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="MatsMulti.cl" />
     <None Include="packages.config" />
     <None Include="fragment.glsl" />
     <None Include="vertex.glsl" />
